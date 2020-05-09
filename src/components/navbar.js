@@ -16,14 +16,22 @@ const navLinkProps = (path, animationDelay) => ({
   },
 });
 
-const activeNavIcon = (path) => ({
-  style: {
-    stroke: window.location.pathname === path ? '#4c75f2' : '',
-  },
+const activeNavIconStyle = (path) => ({
+  stroke: window.location.pathname === path ? '#4c75f2' : '',
 });
+
+const navIcons = {
+  '/': Icon.Home,
+  '/demographics': Icon.Users,
+  '/deepdive': Icon.BarChart2,
+  '/essentials': Icon.Package,
+  '/faq': Icon.HelpCircle,
+  '/about': Icon.HelpCircle,
+};
 
 function Navbar({pages, darkMode, setDarkMode}) {
   const [expand, setExpand] = useState(false);
+  const [mouseoverNav, setMouseoverNav] = useState('');
   // eslint-disable-next-line
   const [isThemeSet, setIsThemeSet] = useLocalStorage('isThemeSet', false);
 
@@ -75,43 +83,41 @@ function Navbar({pages, darkMode, setDarkMode}) {
         }}
       >
         {windowSize.width < 769 && <span>{expand ? 'Close' : 'Menu'}</span>}
-        {windowSize.width > 769 && (
-          <React.Fragment>
-            <span>
-              <Link to="/">
-                <Icon.Home {...activeNavIcon('/')} />
-              </Link>
-            </span>
-            <span>
-              <Link to="/demographics">
-                <Icon.Users {...activeNavIcon('/demographics')} />
-              </Link>
-            </span>
-            <span>
-              <Link to="/deepdive">
-                <Icon.BarChart2 {...activeNavIcon('/deepdive')} />
-              </Link>
-            </span>
-            <span>
-              <Link to="/essentials">
-                <Icon.Package {...activeNavIcon('/essentials')} />
-              </Link>
-            </span>
-            <span>
-              <Link to="/faq">
-                <Icon.HelpCircle {...activeNavIcon('/faq')} />
-              </Link>
-            </span>
-          </React.Fragment>
-        )}
+        {windowSize.width > 769 &&
+          pages.map((page, i) => {
+            const NavIcon = navIcons[page.pageLink];
+            if (!page.showInNavbar) {
+              return null;
+            }
+            return (
+              <span
+                key={i}
+                className={mouseoverNav === page.pageLink ? 'mouseover' : ''}
+                onMouseEnter={() => setMouseoverNav(page.pageLink)}
+                onMouseLeave={() => setMouseoverNav('')}
+              >
+                <Link to={page.pageLink}>
+                  <NavIcon style={activeNavIconStyle(page.pageLink)} />
+                </Link>
+              </span>
+            );
+          })}
       </div>
 
-      {expand && <Expand expand={expand} pages={pages} setExpand={setExpand} />}
+      {expand && (
+        <Expand
+          expand={expand}
+          pages={pages}
+          setExpand={setExpand}
+          mouseoverNav={mouseoverNav}
+          setMouseoverNav={setMouseoverNav}
+        />
+      )}
     </div>
   );
 }
 
-function Expand({expand, pages, setExpand}) {
+function Expand({expand, pages, setExpand, mouseoverNav, setMouseoverNav}) {
   const expandElement = useRef(null);
 
   useEffectOnce(() => {
@@ -136,10 +142,13 @@ function Expand({expand, pages, setExpand}) {
           return (
             <Link
               to={page.pageLink}
+              className={mouseoverNav === page.pageLink ? 'mouseover' : ''}
               key={i}
               onClick={() => {
                 setExpand(false);
               }}
+              onMouseEnter={() => setMouseoverNav(page.pageLink)}
+              onMouseLeave={() => setMouseoverNav('')}
             >
               <span
                 {...navLinkProps(page.pageLink, page.animationDelayForNavbar)}
